@@ -36,7 +36,8 @@ class ApprovalNoteAction(object):
             if not 'approval_note' in values or values['approval_note']=="":
                 self.trigger_UI_event(user_id)
 
-            #add note to approval
+            #add note to approval. 
+            #NOTE: this is added as a COMMENT to the task_object 
             task_object = self.session.query("Task where id is %s"%original_task_id).first()
             user_object = self.session.query("User where id is %s"%event['source']['user']['id']).first()
             if task_object and user_object:
@@ -138,7 +139,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     # if called via connect, authentication is stored in environment
     # which is picked up by the Session constructor, therefore unneeded here
-    session = ftrack_api.Session()
+    session = ftrack_api.Session(auto_connect_event_hub=True)
     register(session)
 
     session.event_hub.wait()

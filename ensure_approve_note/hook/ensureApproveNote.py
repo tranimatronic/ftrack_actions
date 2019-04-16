@@ -4,8 +4,25 @@ import datetime
 import ftrack_api
 import ftrack
 
+'''
+
+This is a custom event plugin to be used with the ftrack 
+asset management API 
+https://www.ftrack.com/en/
+
+Requires ftrack_api to be installed and accessible in sys.path:
+pip install ftrack-python-api
+
+If a task object is approved in the WebUI, and there is no 
+accompanying note, trigger a popup UI asking for one.
+If the response is none, or an empty string, re-show the UI 
+until the response is valid 
+
+'''
+
+
 class ApprovalNoteAction(object):
-    '''Custom action.'''
+    '''Custom Approval Note Action'''
 
     label = 'Approval Note Action'
     identifier = 'approval.note.action'
@@ -38,8 +55,8 @@ class ApprovalNoteAction(object):
 
             #add note to approval. 
             #NOTE: this is added as a COMMENT to the task_object 
-            task_object = self.session.query("Task where id is %s"%original_task_id).first()
-            user_object = self.session.query("User where id is %s"%event['source']['user']['id']).first()
+            task_object = self.session.query("Task where id is {0}".format(original_task_id).first())
+            user_object = self.session.query("User where id is {0}".format(event['source']['user']['id']).first())
             if task_object and user_object:
                 note = task_object.create_note(note_text, user_object)
                 self.session.commit()
@@ -49,10 +66,10 @@ class ApprovalNoteAction(object):
         for entity in event['data'].get('entities', []):
             #if event is not update, and is not task return
             if not entity['action']=='update':
-                self.logger.warning("ACTION NOT UPDATE %s"%entity['action'])
+                self.logger.warning("ACTION NOT UPDATE {0}".format(entity['action']))
                 return
             if not entity['entityType']=='task':
-                self.logger.warning("EVENT NOT TASK %s"%entity['entityType'])
+                self.logger.warning("EVENT NOT TASK {0}".format(entity['entityType']))
                 return 
 
             #if we get here the event is an UPDATED task 
@@ -79,7 +96,7 @@ class ApprovalNoteAction(object):
                         'value': '', 'type': 'textarea'},
                         {'value': origial_task_id,'name': 'original_task_id','type': 'hidden'}],
                 'actionIdentifier':self.identifier},
-        target=('applicationId=ftrack.client.web and user.id=%s'%user_id)
+        target=('applicationId=ftrack.client.web and user.id={0}'.format(user_id))
         )
         self.session.event_hub.publish(event)
         return
